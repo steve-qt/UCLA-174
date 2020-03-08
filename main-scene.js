@@ -11,6 +11,7 @@ window.Team_Project = window.classes.Team_Project =
             context.globals.graphics_state.camera_transform = Mat4.look_at(Vec.of(0, 0, 30), Vec.of(0, 0, 0), Vec.of(0, 1, 0));
             this.initial_camera_location = Mat4.inverse(context.globals.graphics_state.camera_transform);
 
+            //
             const r = context.width / context.height;
             context.globals.graphics_state.projection_transform = Mat4.perspective(Math.PI / 4, r, .1, 1000);
 
