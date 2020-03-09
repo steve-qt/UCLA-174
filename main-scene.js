@@ -37,21 +37,23 @@ window.Team_Project = window.classes.Team_Project =
             this.camera_z = 30;
             this.lights = [ new Light( Vec.of( -5,5,5,1 ), Color.of( 0,0.1,0.1,1 ), 1000000 ) ];
             this.range_x = 20;
-            this.range_y = 10;
+            this.range_y = 40;
             this.range_z = -150;
 
             this.board_is_random_move = false;
             this.board_x = 0;
             this.board_y = 0;
-            this.board_z = -80;
-            this.board_size = 9;
+            this.board_z = -100;
+            this.board_delta_x = Math.random()*7;
+            this.board_delta_y =  Math.random()*4;
+            this.board_size = 30;
             this.board_size_z = 0.1;
             this.directedX = 1;
             this.directedY = 1;
 
             this.shooter_x = 0;
             this.shooter_y = 0;
-            this.shooter_z = 0;
+            this.shooter_z = 10;
 
             this.colors = [Color.of(0.1,0.1,0.1,1),Color.of(0.8,0.3,0.1,1),Color.of(0.3,0.4,0.4,1),
                            Color.of(0.1,0.1,0.1,1),Color.of(0.1,0.1,0.1,1),Color.of(0.1,0.1,0.1,1),
@@ -103,7 +105,7 @@ window.Team_Project = window.classes.Team_Project =
             let board_high_y = this.board_y + this.board_size;
             if (ball_x >= board_low_x && ball_x <= board_high_x
                 && ball_y >= board_low_y && ball_y <= board_high_y){
-                this.board_size /= 1.05;
+                this.board_size /= 1.1  ;
                 return true;
             }
             return false;
@@ -138,6 +140,31 @@ window.Team_Project = window.classes.Team_Project =
         }
 
         board_random_move(){
+            this.board_x = this.board_x  + this.directedX * this.board_delta_y;
+            this.board_y = this.board_y  + this.directedY * this.board_delta_y;
+
+            if (this.board_x > this.range_x){
+                this.board_x = this.range_x;
+                this.directedX = -this.directedX;
+                this.board_delta_x = Math.random() * 7;
+            }
+            else if (this.board_x < -this.board_x){
+                this.board_x = - this.board_x;
+                this.directedX = -this.directedX;
+                this.board_delta_x = Math.random() * 7;
+            }
+            if (this.board_y > this.range_y){
+                this.board_y = this.range_y;
+                this.directedY= -this.directedY;
+                this.board_delta_y = Math.random() * 4;
+            }
+            else if (this.board_y < -this.range_y){
+                this.board_y = - this.range_y;
+                this.directedY= -this.directedY;
+                this.board_delta_y = Math.random() * 4
+            }
+
+            /*
             let is_move_up_down = Math.random() > 0.2 ? true : false;
             let num = Math.random();
             if (is_move_up_down){
@@ -145,28 +172,23 @@ window.Team_Project = window.classes.Team_Project =
             }else{
                 this.board_x = this.board_x  + this.directedX * num;
             }
-
             if (this.board_x > this.range_x){
                 this.board_x = this.range_x;
                 this.directedX = -this.directedX;
             }
-
             else if (this.board_x < -this.board_x){
                 this.board_x = - this.board_x;
                 this.directedX = -this.directedX;
             }
-
-
             if (this.board_y > this.range_y){
                 this.board_y = this.range_y;
                 this.directedY= -this.directedY;
             }
-
             else if (this.board_y < -this.range_y){
                 this.board_y = - this.range_y;
                 this.directedY= -this.directedY;
             }
-
+            */
         }
 
         random_move(){
@@ -175,7 +197,7 @@ window.Team_Project = window.classes.Team_Project =
 
         make_control_panel() {
             this.key_triggered_button("Shoot",["c"],this.shoot);
-            this.key_triggered_button("Move Board",["r"],this.random_move);
+            this.key_triggered_button("Moving Dartboard",["u"],this.random_move);
             this.key_triggered_button("Move Left",["b"],this.shooter_move_left);
             this.key_triggered_button("Move Right",["m"],this.shooter_move_right);
             this.key_triggered_button("Move Up",["h"],this.shooter_move_up);
@@ -189,10 +211,7 @@ window.Team_Project = window.classes.Team_Project =
             //render dartboard
             if(this.board_is_random_move){
                 this.board_random_move();
-
             }
-
-            //render board
             let dartboard_matrix = Mat4.identity().times(Mat4.translation([this.board_x,this.board_y,this.board_z]));
             dartboard_matrix = dartboard_matrix.times(Mat4.scale([this.board_size,this.board_size,this.board_size_z]));
             this.shapes.ball.draw(graphics_state,dartboard_matrix,this.materials.dartboard);
@@ -221,7 +240,7 @@ window.Team_Project = window.classes.Team_Project =
                     this.shapes.ball.draw(graphics_state,ball_matrix,this.materials.ball1.override({color : Color.of(Math.random(),Math.random(),Math.random(),1)}));
 
                     if (this.ball_z[i] < this.range_z || this.ball_z[i] >  this.camera_z){
-                      // this.is_shot[i] = false;
+                       this.is_shot[i] = false;
                     }
                 }
             }
