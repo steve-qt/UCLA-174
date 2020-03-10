@@ -55,11 +55,38 @@ window.Team_Project = window.classes.Team_Project =
                         ambient: 1, texture:
                             context.get_instance("assets/dog.png", false)
                     }),
+                    corona: context.get_instance(Phong_Shader).material(Color.of(0, 0, 0, 1), {
+                        ambient: 1, texture:
+                            context.get_instance("assets/dog.png", false)
+                    }),
                     star: context.get_instance(Texture_Scroll_X).material(Color.of(0, 0, 0, 1), {
                         ambient: 1,
                         texture: context.get_instance("assets/blood.png", true)
                     }),
                 };
+            //sound
+            this.shooting_sound= new Howl({
+                src: 'sound/shooting_sound.mp3',
+                html5: true, // A live stream can only be played through HTML5 Audio.
+                format: ['mp3', 'aac']
+            });
+            this.explosion_sound= new Howl({
+                src: 'sound/explosion.mp3',
+                html5: true, // A live stream can only be played through HTML5 Audio.
+                format: ['mp3', 'aac']
+            });
+            this.winning_sound= new Howl({
+                src: 'sound/explosion.mp3',
+                html5: true, // A live stream can only be played through HTML5 Audio.
+                format: ['mp3', 'aac']
+            });
+            this.start_sound= new Howl({
+                src: 'sound/explosion.mp3',
+                html5: true, // A live stream can only be played through HTML5 Audio.
+                format: ['mp3', 'aac']
+            });
+            this.winning_sound_on = false;
+            this.start_sound_on = false;
 
             this.camera_z = 30;
             this.lights = [new Light(Vec.of(-5, 5, 5, 1), Color.of(0, 0.1, 0.1, 1), 1000000)];
@@ -67,7 +94,7 @@ window.Team_Project = window.classes.Team_Project =
             this.range_y = 15;
             this.range_z = -150;
 
-            this.board_is_random_move = true;
+            this.started = false;
             this.board_x = 0;
             this.board_y = 0;
             this.board_z = -100;
@@ -125,23 +152,16 @@ window.Team_Project = window.classes.Team_Project =
 
 
             this.target = this.materials.dartboard;
-
             this.star_transform = Mat4.identity().times(Mat4.translation([0,0,-200]))
                 .times(Mat4.scale([100, 100, -50]));
         }
 
         shoot() {
-            let shooting_sound= new Howl({
-                src: 'sound/shooting_sound.mp3',
-                html5: true, // A live stream can only be played through HTML5 Audio.
-                format: ['mp3', 'aac']
-            });
-
             let i = 0;
             for (; i < this.ball_num; i++) {
                 //not shot yet
                 if (!this.is_shot[i]) {
-                    shooting_sound.play();
+                    this.shooting_sound.play();
                     this.is_shot[i] = true;
                     this.start_time[i] = 0;
                     this.ball_x[i] = this.shooter_x;
@@ -222,34 +242,8 @@ window.Team_Project = window.classes.Team_Project =
             } else if (this.board_y < -this.range_y) {
                 this.board_y = -this.range_y;
                 this.directedY = -this.directedY;
-                this.board_delta_y = Math.random() * 4
+                this.board_delta_y = Math.random() * 4;
             }
-
-            /*
-            let is_move_up_down = Math.random() > 0.2 ? true : false;
-            let num = Math.random();
-            if (is_move_up_down){
-                this.board_y = this.board_y  + this.directedY * num;
-            }else{
-                this.board_x = this.board_x  + this.directedX * num;
-            }
-            if (this.board_x > this.range_x){
-                this.board_x = this.range_x;
-                this.directedX = -this.directedX;
-            }
-            else if (this.board_x < -this.board_x){
-                this.board_x = - this.board_x;
-                this.directedX = -this.directedX;
-            }
-            if (this.board_y > this.range_y){
-                this.board_y = this.range_y;
-                this.directedY= -this.directedY;
-            }
-            else if (this.board_y < -this.range_y){
-                this.board_y = - this.range_y;
-                this.directedY= -this.directedY;
-            }
-            */
         }
         attack_earth() {
             this.target = this.materials.dartboard
@@ -264,12 +258,13 @@ window.Team_Project = window.classes.Team_Project =
         }
 
         random_move() {
-            this.board_is_random_move = !(this.board_is_random_move);
+            this.started = true;
+
         }
 
         make_control_panel() {
             this.key_triggered_button("Shoot", ["c"], this.shoot);
-            this.key_triggered_button("Moving Dartboard", ["u"], this.random_move);
+            this.key_triggered_button("Start", ["u"], this.random_move);
             this.key_triggered_button("Move Left", ["b"], this.shooter_move_left);
             this.key_triggered_button("Move Right", ["m"], this.shooter_move_right);
             this.key_triggered_button("Move Up", ["h"], this.shooter_move_up);
@@ -285,16 +280,31 @@ window.Team_Project = window.classes.Team_Project =
             this.shapes.box.draw(graphics_state, this.star_transform, this.materials.star);
 
             //render dartboard
-            if (this.board_is_random_move) {
+            if (this.started) {
+                if(!this.start_sound_on){
+                    this.start_sound.play();
+                    this.start_sound_on = true;
+                }
                 this.board_random_move();
+            }else{
+                //render corona panel
+                let panel_matrix = Mat4.identity();
+                panel_matrix = panel_matrix.times(Mat4.scale([2,2,2]));
+                this.shapes.square.draw(graphics_state,panel_matrix,this.materials.corona);
             }
+
             if (this.board_size  >= this.board_size_limit){
                 let dartboard_matrix = Mat4.identity().times(Mat4.translation([this.board_x, this.board_y, this.board_z]))
                     .times(Mat4.scale([this.board_size, this.board_size, this.board_size_z]))
                     .times( Mat4.rotation(.60 * Math.PI * dt, Vec.of(0,0,1)))
                 this.shapes.ball.draw(graphics_state, dartboard_matrix, this.target);
             }else{
-                //render fragments
+                //won!!!! render fragments and display texts
+                if(!this.winning_sound_on){
+                    this.winning_sound_on = true;
+                    this.winning_sound.play();
+
+                }
                 let j= 0;
                 this.fragment_is_shot[0] = true;
                 for (; j < this.fragment_num; j++) {
@@ -319,22 +329,19 @@ window.Team_Project = window.classes.Team_Project =
             }
 
 
-
-            //render shooter
-            let shooter_matrix = Mat4.identity().times(Mat4.scale([1, 1, 0.1])).times(Mat4.translation([this.shooter_x, this.shooter_y, this.shooter_z]));
-            this.shapes.sphere.draw(graphics_state, shooter_matrix, this.materials.target);
-
+            if(!this.winning_sound_on){
+                //render shooter
+                let shooter_matrix = Mat4.identity().times(Mat4.scale([1, 1, 0.1])).times(Mat4.translation([this.shooter_x, this.shooter_y, this.shooter_z]));
+                this.shapes.sphere.draw(graphics_state, shooter_matrix, this.materials.target);
+            }
+            
             //render bullet
             let i = 0;
             for (; i < this.ball_num; i++) {
                 if (this.is_shot[i]) {
                     if (this.check_collision(i)) {
                         this.ball_direction[i] = 1;
-                        var explosion= new Howl({
-                            src: 'sound/explosion.mp3',
-                            html5: true, // A live stream can only be played through HTML5 Audio.
-                            format: ['mp3', 'aac']
-                        }).play();
+                        this.explosion_sound.play();
                     }
                     this.start_time[i]++;
                     this.ball_z[i] += 2 * this.ball_direction[i];
