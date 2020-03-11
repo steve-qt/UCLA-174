@@ -27,9 +27,13 @@ window.Team_Project = window.classes.Team_Project =
                 {
                     ball1: context.get_instance(Phong_Shader).material(Color.of(0, 0.8, 0.8, 1)),
                     ball2: context.get_instance(Phong_Shader).material(Color.of(0.1, 0.4, 0.8, 1)),
+                    random: context.get_instance(Texture_Scroll_X).material(Color.of(0, 0, 0, 1), {
+                        ambient: 1, texture:
+                            context.get_instance("assets/target.png", false)
+                    }),
                     dartboard: context.get_instance(Texture_Scroll_X).material(Color.of(0, 0, 0, 1), {
                         ambient: 1, texture:
-                            context.get_instance("assets/earth.jpg", false)
+                            context.get_instance("assets/virus.jpg", false)
                     }),
                     dartboard1: context.get_instance(Texture_Scroll_X).material(Color.of(0, 0, 0, 1), {
                         ambient: 1, texture:
@@ -49,7 +53,7 @@ window.Team_Project = window.classes.Team_Project =
                     }),
                     fragment: context.get_instance(Phong_Shader).material(Color.of(0, 0, 0, 1), {
                         ambient: 1, texture:
-                            context.get_instance("assets/sniper.jpg", false)
+                            context.get_instance("assets/sniper.png", false)
                     }),
                     panel: context.get_instance(Phong_Shader).material(Color.of(0, 0, 0, 1), {
                         ambient: 1, texture:
@@ -61,7 +65,7 @@ window.Team_Project = window.classes.Team_Project =
                     }),
                     star: context.get_instance(Texture_Scroll_X).material(Color.of(0, 0, 0, 1), {
                         ambient: 1,
-                        texture: context.get_instance("assets/blood.png", true)
+                        texture: context.get_instance("assets/bg.jpg", true)
                     }),
                 };
             //sound
@@ -152,10 +156,9 @@ window.Team_Project = window.classes.Team_Project =
                 this.fragment_z[i] = 0;
             }
 
-
-            this.target = this.materials.dartboard;
             this.star_transform = Mat4.identity().times(Mat4.translation([0,0,-200]))
-                .times(Mat4.scale([100, 100, -50]));
+                .times(Mat4.scale([140, 140, -50]));
+
         }
 
         shoot() {
@@ -247,17 +250,7 @@ window.Team_Project = window.classes.Team_Project =
                 this.board_delta_y = Math.random() * 4;
             }
         }
-        attack_earth() {
-            this.target = this.materials.dartboard
-        }
 
-        attack_sun() {
-            this.target = this.materials.dartboard1
-        }
-
-        attack_moon(){
-            this.target = this.materials.dartboard2
-        }
 
         random_move() {
             this.started = true;
@@ -272,9 +265,6 @@ window.Team_Project = window.classes.Team_Project =
             this.key_triggered_button("Move Right", ["m"], this.shooter_move_right);
             this.key_triggered_button("Move Up", ["h"], this.shooter_move_up);
             this.key_triggered_button("Move Down", ["n"], this.shooter_move_down);
-            this.key_triggered_button("Attack_Sun", ["t"], this.attack_sun);
-            this.key_triggered_button("Attack_Moon", ["l"], this.attack_moon);
-            this.key_triggered_button("Attack_Earth", ["p"], this.attack_earth());
         }
 
         display(graphics_state) {
@@ -284,8 +274,6 @@ window.Team_Project = window.classes.Team_Project =
 
             //render dartboard
             if (this.started) {
-
-
                 this.board_random_move();
             }else{
                 //render corona panel
@@ -298,7 +286,7 @@ window.Team_Project = window.classes.Team_Project =
                 let dartboard_matrix = Mat4.identity().times(Mat4.translation([this.board_x, this.board_y, this.board_z]))
                     .times(Mat4.scale([this.board_size, this.board_size, this.board_size_z]))
                     .times( Mat4.rotation(.60 * Math.PI * dt, Vec.of(0,0,1)))
-                this.shapes.ball.draw(graphics_state, dartboard_matrix, this.target);
+                this.shapes.ball.draw(graphics_state, dartboard_matrix, this.materials.dartboard);
             }else{
                 //won!!!! render fragments and display texts
                 if(!this.winning_sound_on){
@@ -348,7 +336,7 @@ window.Team_Project = window.classes.Team_Project =
                     this.ball_z[i] += 2 * this.ball_direction[i];
                     let ball_matrix = Mat4.identity().times(Mat4.translation([this.ball_x[i], this.ball_y[i], this.ball_z[i]]));
                     ball_matrix = ball_matrix.times(Mat4.scale([this.ball_size, this.ball_size, this.ball_size]));
-                    this.shapes.ball.draw(graphics_state, ball_matrix, this.materials.ball1.override({color: Color.of(Math.random(), Math.random(), Math.random(), 1)}));
+                    this.shapes.ball.draw(graphics_state, ball_matrix, this.materials.ball1.override({color: Color.of(0,1,0,1)}));
                     if (this.ball_z[i] < this.range_z || this.ball_z[i] > this.camera_z) {
                         this.is_shot[i] = false;
                     }
