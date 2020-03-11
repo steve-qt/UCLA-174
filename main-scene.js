@@ -49,15 +49,15 @@ window.Team_Project = window.classes.Team_Project =
                     }),
                     fragment: context.get_instance(Phong_Shader).material(Color.of(0, 0, 0, 1), {
                         ambient: 1, texture:
-                            context.get_instance("assets/sniper.png", false)
+                            context.get_instance("assets/sniper.jpg", false)
                     }),
                     panel: context.get_instance(Phong_Shader).material(Color.of(0, 0, 0, 1), {
                         ambient: 1, texture:
-                            context.get_instance("assets/dog.png", false)
+                            context.get_instance("assets/panel.png", false)
                     }),
                     corona: context.get_instance(Phong_Shader).material(Color.of(0, 0, 0, 1), {
                         ambient: 1, texture:
-                            context.get_instance("assets/dog.png", false)
+                            context.get_instance("assets/corona.png", false)
                     }),
                     star: context.get_instance(Texture_Scroll_X).material(Color.of(0, 0, 0, 1), {
                         ambient: 1,
@@ -67,26 +67,28 @@ window.Team_Project = window.classes.Team_Project =
             //sound
             this.shooting_sound= new Howl({
                 src: 'sound/shooting_sound.mp3',
+                volume: 0.5,
                 html5: true, // A live stream can only be played through HTML5 Audio.
                 format: ['mp3', 'aac']
             });
             this.explosion_sound= new Howl({
                 src: 'sound/explosion.mp3',
+                volume: 0.5,
                 html5: true, // A live stream can only be played through HTML5 Audio.
                 format: ['mp3', 'aac']
             });
             this.winning_sound= new Howl({
-                src: 'sound/explosion.mp3',
+                src: 'sound/winner.wav',
                 html5: true, // A live stream can only be played through HTML5 Audio.
-                format: ['mp3', 'aac']
+                format: ['wav']
             });
             this.start_sound= new Howl({
-                src: 'sound/explosion.mp3',
+                src: 'sound/start.wav',
                 html5: true, // A live stream can only be played through HTML5 Audio.
-                format: ['mp3', 'aac']
+                format: ['wav']
             });
             this.winning_sound_on = false;
-            this.start_sound_on = false;
+
 
             this.camera_z = 30;
             this.lights = [new Light(Vec.of(-5, 5, 5, 1), Color.of(0, 0.1, 0.1, 1), 1000000)];
@@ -101,7 +103,7 @@ window.Team_Project = window.classes.Team_Project =
             this.board_delta_x = Math.random() * 7;
             this.board_delta_y = Math.random() * 4;
             this.board_size = 20;
-            this.board_size_limit = 15;
+            this.board_size_limit = 5;
             this.board_size_z = 0.1;
             this.directedX = 1;
             this.directedY = 1;
@@ -259,7 +261,8 @@ window.Team_Project = window.classes.Team_Project =
 
         random_move() {
             this.started = true;
-
+            this.start_sound.play();
+            this.start_sound.play();
         }
 
         make_control_panel() {
@@ -281,15 +284,13 @@ window.Team_Project = window.classes.Team_Project =
 
             //render dartboard
             if (this.started) {
-                if(!this.start_sound_on){
-                    this.start_sound.play();
-                    this.start_sound_on = true;
-                }
+
+
                 this.board_random_move();
             }else{
                 //render corona panel
                 let panel_matrix = Mat4.identity();
-                panel_matrix = panel_matrix.times(Mat4.scale([2,2,2]));
+                panel_matrix = panel_matrix.times(Mat4.scale([15,15,15]));
                 this.shapes.square.draw(graphics_state,panel_matrix,this.materials.corona);
             }
 
@@ -303,7 +304,6 @@ window.Team_Project = window.classes.Team_Project =
                 if(!this.winning_sound_on){
                     this.winning_sound_on = true;
                     this.winning_sound.play();
-
                 }
                 let j= 0;
                 this.fragment_is_shot[0] = true;
@@ -324,17 +324,18 @@ window.Team_Project = window.classes.Team_Project =
 
                 //render panel
                 let panel_matrix = Mat4.identity();
-                panel_matrix = panel_matrix.times(Mat4.scale([2,2,2]));
+                panel_matrix = panel_matrix.times(Mat4.scale([15,15,15]));
                 this.shapes.square.draw(graphics_state,panel_matrix,this.materials.panel);
+
             }
 
 
-            if(!this.winning_sound_on){
+            if(!this.winning_sound_on && this.started){
                 //render shooter
                 let shooter_matrix = Mat4.identity().times(Mat4.scale([1, 1, 0.1])).times(Mat4.translation([this.shooter_x, this.shooter_y, this.shooter_z]));
                 this.shapes.sphere.draw(graphics_state, shooter_matrix, this.materials.target);
             }
-            
+
             //render bullet
             let i = 0;
             for (; i < this.ball_num; i++) {
