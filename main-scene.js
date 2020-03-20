@@ -91,6 +91,14 @@ window.Team_Project = window.classes.Team_Project =
                 html5: true, // A live stream can only be played through HTML5 Audio.
                 format: ['wav']
             });
+            this.music= new Howl({
+                src: 'sound/bm1.wav',
+                volume: 0.5,
+                loop: true,
+                html5: true, // A live stream can only be played through HTML5 Audio.
+                format: ['wav']
+            });
+
             this.winning_sound_on = false;
 
 
@@ -106,15 +114,18 @@ window.Team_Project = window.classes.Team_Project =
             this.board_z = -100;
             this.board_delta_x = Math.random() * 7;
             this.board_delta_y = Math.random() * 4;
-            this.board_size = 20;
+            this.board_size = 15;
             this.board_size_limit = 5;
             this.board_size_z = 0.1;
             this.directedX = 1;
             this.directedY = 1;
+            this.board_range_x = 50;
+            this.board_range_y = 20;
+
 
             this.shooter_x = 0;
             this.shooter_y = 0;
-            this.shooter_z = 10;
+            this.shooter_z = 0;
 
             this.colors = [Color.of(0.1, 0.1, 0.1, 1), Color.of(0.8, 0.3, 0.1, 1), Color.of(0.3, 0.4, 0.4, 1),
                 Color.of(0.1, 0.1, 0.1, 1), Color.of(0.1, 0.1, 0.1, 1), Color.of(0.1, 0.1, 0.1, 1),
@@ -122,12 +133,14 @@ window.Team_Project = window.classes.Team_Project =
                 Color.of(0.1, 0.1, 0.1, 1)];
 
             this.ball_num = 100;
+            this.ball_size = 2;
             this.is_shot = new Array(this.ball_num);
             this.start_time = new Array(this.ball_num);
             this.ball_x = new Array(this.ball_num);
             this.ball_y = new Array(this.ball_num);
             this.ball_z = new Array(this.ball_num);
-            this.ball_size = 2;
+            this.ball_dx = new Array(this.ball_num);
+            this.ball_dy = new Array(this.ball_num);
             this.ball_direction = new Array(this.ball_num);
             let i = 0;
             for (; i < this.ball_num; i++) {
@@ -136,6 +149,8 @@ window.Team_Project = window.classes.Team_Project =
                 this.ball_z[i] = 0;
                 this.ball_y[i] = 0;
                 this.ball_x[i] = 0;
+                this.ball_dx[i] = 0;
+                this.ball_dy[i] = 0;
                 this.ball_direction[i] = -1;
             }
 
@@ -169,9 +184,11 @@ window.Team_Project = window.classes.Team_Project =
                     this.shooting_sound.play();
                     this.is_shot[i] = true;
                     this.start_time[i] = 0;
-                    this.ball_x[i] = this.shooter_x;
-                    this.ball_y[i] = this.shooter_y;
-                    this.ball_z[i] = this.shooter_z;
+                    this.ball_x[i] = 0;
+                    this.ball_y[i] = 0;
+                    this.ball_z[i] = 10;
+                    this.ball_dx[i]  = 0.1 * this.shooter_x;
+                    this.ball_dy[i]  = 0.1 * this.shooter_y;
                     this.ball_direction[i] = -1;
                     break;
                 }
@@ -231,31 +248,31 @@ window.Team_Project = window.classes.Team_Project =
             this.board_x = this.board_x + this.directedX * this.board_delta_x;
             this.board_y = this.board_y + this.directedY * this.board_delta_y;
 
-            if (this.board_x > this.range_x) {
-                this.board_x = this.range_x;
+            if (this.board_x > this.board_range_x) {
+                this.board_x = this.board_range_x;
                 this.directedX = -this.directedX;
-                this.board_delta_x = Math.random() * 7;
-            } else if (this.board_x < -this.board_x) {
-                this.board_x = -this.board_x;
+                this.board_delta_x = Math.random() * 3;
+            } else if (this.board_x < -this.board_range_x) {
+                this.board_x = -this.board_range_x;
                 this.directedX = -this.directedX;
-                this.board_delta_x = Math.random() * 7;
+                this.board_delta_x = Math.random() * 3;
             }
-            if (this.board_y > this.range_y) {
-                this.board_y = this.range_y;
+            if (this.board_y > this.board_range_y) {
+                this.board_y = this.board_range_y;
                 this.directedY = -this.directedY;
-                this.board_delta_y = Math.random() * 4;
-            } else if (this.board_y < -this.range_y) {
-                this.board_y = -this.range_y;
+                this.board_delta_y = Math.random() * 1;
+            } else if (this.board_y < -this.board_range_y) {
+                this.board_y = -this.board_range_y;
                 this.directedY = -this.directedY;
-                this.board_delta_y = Math.random() * 4;
+                this.board_delta_y = Math.random() * 1;
             }
         }
 
 
         random_move() {
+            this.music.play();
+            this.start_sound.play();
             this.started = true;
-            this.start_sound.play();
-            this.start_sound.play();
         }
 
         make_control_panel() {
@@ -269,7 +286,7 @@ window.Team_Project = window.classes.Team_Project =
 
         display(graphics_state) {
             graphics_state.lights = this.lights;        // Use the lights stored in this.lights.
-            const t = graphics_state.animation_time / 100000, dt = graphics_state.animation_delta_time / 100000;
+            const t = graphics_state.animation_time / 100, dt = graphics_state.animation_delta_time / 100;
             this.shapes.box.draw(graphics_state, this.star_transform, this.materials.star);
 
             //render dartboard
@@ -333,6 +350,8 @@ window.Team_Project = window.classes.Team_Project =
                         this.explosion_sound.play();
                     }
                     this.start_time[i]++;
+                    this.ball_x[i] += this.ball_dx[i];
+                    this.ball_y[i] += this.ball_dy[i];
                     this.ball_z[i] += 2 * this.ball_direction[i];
                     let ball_matrix = Mat4.identity().times(Mat4.translation([this.ball_x[i], this.ball_y[i], this.ball_z[i]]));
                     ball_matrix = ball_matrix.times(Mat4.scale([this.ball_size, this.ball_size, this.ball_size]));
